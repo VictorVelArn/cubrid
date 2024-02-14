@@ -525,6 +525,7 @@ disk_format (THREAD_ENTRY * thread_p, const char *dbname, VOLID volid, DBDEF_VOL
   DKNPAGES extend_npages = DISK_SECTS_NPAGES (ext_info->nsect_total);
   INT16 prev_volid;
   int error_code = NO_ERROR;
+  char padded_vol_fullname [DB_MAX_PATH_LENGTH];
 
   assert ((int) sizeof (DISK_VOLUME_HEADER) <= DB_PAGESIZE);
 
@@ -555,9 +556,11 @@ disk_format (THREAD_ENTRY * thread_p, const char *dbname, VOLID volid, DBDEF_VOL
    * in a top operation) */
   addr.offset = (PGLENGTH) volid;
   addr.pgptr = NULL;
+  memset(padded_vol_fullname, '\0', DB_MAX_PATH_LENGTH);
+  strcpy(padded_vol_fullname, vol_fullname);
   if (ext_info->voltype == DB_PERMANENT_VOLTYPE)
     {
-      log_append_undo_data (thread_p, RVDK_FORMAT, &addr, (int) strlen (vol_fullname) + 1, vol_fullname);
+      log_append_undo_data (thread_p, RVDK_FORMAT, &addr, DB_MAX_PATH_LENGTH, padded_vol_fullname);
     }
   fault_inject_random_crash ();
 
@@ -5346,7 +5349,10 @@ disk_vhdr_set_vol_remarks (DISK_VOLUME_HEADER * vhdr, const char *vol_remarks)
 	}
       else
 	{
-	  (void) strcpy (disk_vhdr_get_vol_remarks (vhdr), vol_remarks);
+          char padded_vol_remarks[maxsize];
+          memset(padded_vol_remarks, '\0', maxsize);
+          strcpy(padded_vol_remarks, vol_remarks);
+	  (void) strcpy (disk_vhdr_get_vol_remarks (vhdr), padded_vol_remarks);
 	}
     }
   else
@@ -5402,7 +5408,7 @@ disk_vhdr_get_vol_remarks (const DISK_VOLUME_HEADER * vhdr)
 STATIC_INLINE int
 disk_vhdr_length_of_varfields (const DISK_VOLUME_HEADER * vhdr)
 {
-  return (vhdr->offset_to_vol_remarks + (int) strlen (disk_vhdr_get_vol_remarks (vhdr)));
+  return  DB_PAGESIZE - offsetof (DISK_VOLUME_HEADER, var_fields);
 }
 
 /*

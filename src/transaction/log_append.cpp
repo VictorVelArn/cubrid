@@ -832,7 +832,7 @@ prior_lsa_gen_undoredo_record_from_crumbs (THREAD_ENTRY *thread_p, LOG_PRIOR_NOD
 	  assert (CAST_BUFLEN (tmp_ptr - data_ptr) == total_length
 		  || ulength < log_Zip_min_size_to_compress || rlength < log_Zip_min_size_to_compress);
 
-	  if (ulength >= log_Zip_min_size_to_compress && rlength >= log_Zip_min_size_to_compress)
+	  if (ulength >= log_Zip_min_size_to_compress && rlength >= log_Zip_min_size_to_compress && rcvindex != RVDK_FORMAT && rcvindex != RVDK_NEWVOL)
 	    {
 	      (void) log_diff (ulength, undo_data, rlength, redo_data);
 
@@ -846,11 +846,11 @@ prior_lsa_gen_undoredo_record_from_crumbs (THREAD_ENTRY *thread_p, LOG_PRIOR_NOD
 	    }
 	  else
 	    {
-	      if (ulength >= log_Zip_min_size_to_compress)
+	      if (ulength >= log_Zip_min_size_to_compress && rcvindex != RVDK_FORMAT && rcvindex != RVDK_NEWVOL)
 		{
 		  is_undo_zip = log_zip (zip_undo, ulength, undo_data);
 		}
-	      if (rlength >= log_Zip_min_size_to_compress)
+	      if (rlength >= log_Zip_min_size_to_compress && rcvindex != RVDK_FORMAT && rcvindex != RVDK_NEWVOL)
 		{
 		  is_redo_zip = log_zip (zip_redo, rlength, redo_data);
 		}
